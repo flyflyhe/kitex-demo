@@ -4,8 +4,8 @@ go 1.23.2
 
 require (
 	github.com/bytedance/gopkg v0.1.3
-	github.com/cloudwego/frugal v0.3.0
-	github.com/cloudwego/gopkg v0.1.6
+	github.com/cloudwego/frugal v0.3.1
+	github.com/cloudwego/gopkg v0.1.7
 	github.com/cloudwego/kitex v0.15.2
 	go.uber.org/zap v1.27.1
 )
@@ -39,10 +39,10 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/arch v0.14.0 // indirect
-	golang.org/x/net v0.24.0 // indirect
-	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/sync v0.12.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	google.golang.org/genproto v0.0.0-20210513213006-bf773b8c8384 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
