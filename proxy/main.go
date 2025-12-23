@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/bytedance/gopkg/cloud/metainfo"
 	"github.com/cloudwego/kitex/pkg/endpoint"
 	"github.com/cloudwego/kitex/pkg/klog"
@@ -120,26 +121,29 @@ func AccessLogMiddleware(logger *zap.SugaredLogger) endpoint.Middleware {
 			}
 
 			invocation := ri.Invocation()
-			//from := ri.From()
-			//to := ri.To()
+			from := ri.From()
+			to := ri.To()
 			uuid, _ := metainfo.GetValue(ctx, "uuid")
 
-			// 输出结构化日志
-			logger.Infow("rpc_access_log",
-				"service", invocation.ServiceName(),
-				"method", invocation.MethodName(),
-				//"caller_addr", from.Address().String(),
-				//"local_addr", to.Address().String(),
-				"duration_ms", time.Since(start).Milliseconds(),
-				"uuid", uuid,
-				"success", err == nil,
-				"error", func() string {
+			logB, _ := json.Marshal(map[string]interface{}{
+				"service":     invocation.ServiceName(),
+				"method":      invocation.MethodName(),
+				"caller_addr": from.Address(),
+				"local_addr":  to.Address(),
+				"duration_ms": time.Since(start).Milliseconds(),
+				"uuid":        uuid,
+				"success":     err == nil,
+				"error": func() string {
 					if err != nil {
 						return err.Error()
 					}
 					return ""
 				}(),
-			)
+				"request":  req,  //
+				"response": resp, //
+			})
+			// 输出结构化日志
+			logger.Info(string(logB))
 
 			return err
 		}
