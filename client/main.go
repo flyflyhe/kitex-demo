@@ -17,7 +17,7 @@ import (
 
 func main() {
 	cli, err := testservice.NewClient("TestService",
-		client.WithHostPorts("0.0.0.0:8080"),
+		client.WithHostPorts("127.0.0.1:8080"),
 		client.WithClientBasicInfo(&rpcinfo.EndpointBasicInfo{ServiceName: "TestService"}),
 		client.WithTransportProtocol(transport.TTHeaderFramed),
 		client.WithMetaHandler(transmeta.ClientTTHeaderHandler),

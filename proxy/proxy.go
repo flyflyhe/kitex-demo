@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"sync"
 	"time"
@@ -33,9 +34,10 @@ import (
 	"github.com/cloudwego/kitex/server"
 	"github.com/cloudwego/kitex/server/genericserver"
 	"github.com/cloudwego/kitex/transport"
+	etcd "github.com/kitex-contrib/registry-etcd"
 )
 
-const targetDownstreamService = "cloud.kitex.service"
+const targetDownstreamService = "TestService"
 
 var (
 	thriftClientsMu sync.RWMutex
@@ -58,8 +60,14 @@ func getOrCreateThriftGenericClient(ri rpcinfo.RPCInfo, genCodeAddr net.Addr) (g
 	if cli, ok := thriftClients[serviceName]; ok {
 		return cli, nil
 	}
+
+	r, err := etcd.NewEtcdResolver([]string{"127.0.0.1:2379"})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	options := []client.Option{
-		client.WithHostPorts(genCodeAddr.String()),
+		client.WithResolver(r),
 		client.WithTransportProtocol(transport.TTHeader | transport.TTHeaderStreaming),
 		client.WithMetaHandler(transmeta.ClientTTHeaderHandler),
 		client.WithMetaHandler(transmeta.ClientHTTP2Handler),
@@ -101,16 +109,6 @@ func getOrCreatePbGenericClient(ri rpcinfo.RPCInfo, genCodeAddr net.Addr) (gener
 }
 
 func getOrCreateGenericClient(ri rpcinfo.RPCInfo, genCodeAddr net.Addr) (genericclient.Client, error) {
-	fmt.Println("from", ri.From().Method())
-	fmt.Println("from", ri.From().ServiceName())
-	fmt.Println("from", ri.From().Address())
-	fmt.Println("config", ri.Config().PayloadCodec())
-	fmt.Println("to", ri.To().ServiceName())
-	fmt.Println("to", ri.To().Method())
-	fmt.Println("to", ri.To().Address())
-	fmt.Println("in", ri.Invocation().MethodName())
-	fmt.Println("in", ri.Invocation().ServiceName())
-	fmt.Println("in", ri.Invocation().MethodInfo())
 	switch ri.Config().PayloadCodec() {
 	case serviceinfo.Thrift:
 		return getOrCreateThriftGenericClient(ri, genCodeAddr)

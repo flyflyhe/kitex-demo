@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
 	"github.com/bytedance/gopkg/lang/dirtmake"
 	"github.com/cloudwego/frugal"
 	"github.com/cloudwego/kitex/client"
@@ -20,9 +20,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	cli, err := genericclient.NewClient("hello", generic.BinaryThriftGenericV2("TestService"),
+	cli, err := genericclient.NewClient("TestService", generic.BinaryThriftGenericV2("TestService"),
 		client.WithHostPorts(addr.String()),
-		client.WithTransportProtocol(transport.TTHeader|transport.TTHeaderStreaming),
+		client.WithTransportProtocol(transport.TTHeaderFramed),
 		client.WithMetaHandler(transmeta.ClientTTHeaderHandler),
 		client.WithMetaHandler(transmeta.ClientHTTP2Handler))
 	if err != nil {
@@ -45,5 +45,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(res)
+	resJ, err := json.Marshal(res)
+	if err != nil {
+		panic(err)
+	} else {
+		println(string(resJ))
+		resp := &service.TestResponse{}
+		_, err = frugal.DecodeObject(res.([]byte), resp)
+		if err != nil {
+			panic(err)
+		}
+		println(resp.Msg)
+	}
 }
