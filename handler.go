@@ -8,7 +8,9 @@ import (
 )
 
 // TestServiceImpl implements the last service interface defined in the IDL.
-type TestServiceImpl struct{}
+type TestServiceImpl struct {
+	Port string
+}
 
 // TMethod implements the TestServiceImpl interface.
 func (s *TestServiceImpl) TMethod(ctx context.Context, req *service.TestRequest) (resp *service.TestResponse, err error) {
@@ -16,6 +18,9 @@ func (s *TestServiceImpl) TMethod(ctx context.Context, req *service.TestRequest)
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("端口", s.Port)
+
 	fmt.Println("收到req", string(reqJ))
 	return &service.TestResponse{Msg: "hello", S: req.S}, nil
 }

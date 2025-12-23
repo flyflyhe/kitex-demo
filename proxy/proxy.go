@@ -17,6 +17,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/cloudwego/kitex/pkg/loadbalance"
 	"io"
 	"log"
 	"net"
@@ -68,6 +69,7 @@ func getOrCreateThriftGenericClient(ri rpcinfo.RPCInfo, genCodeAddr net.Addr) (g
 
 	options := []client.Option{
 		client.WithResolver(r),
+		client.WithLoadBalancer(loadbalance.NewWeightedRandomBalancer()),
 		client.WithTransportProtocol(transport.TTHeader | transport.TTHeaderStreaming),
 		client.WithMetaHandler(transmeta.ClientTTHeaderHandler),
 		client.WithMetaHandler(transmeta.ClientHTTP2Handler),
