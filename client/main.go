@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/bytedance/gopkg/cloud/metainfo"
 	"github.com/cloudwego/kitex/client"
-	"github.com/cloudwego/kitex/client/callopt"
 	"github.com/cloudwego/kitex/pkg/rpcinfo"
 	"github.com/cloudwego/kitex/pkg/transmeta"
 	"github.com/cloudwego/kitex/transport"
@@ -41,7 +40,7 @@ func main() {
 		SListString:   []string{"hello"},
 		SSetI16:       []int16{1},
 		SMapI32String: map[int32]string{1: "hello"},
-	}}, callopt.WithTag("uuid", "123545"))
+	}})
 	if err != nil {
 		panic(err)
 	}

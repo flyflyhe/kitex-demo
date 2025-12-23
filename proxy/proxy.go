@@ -17,6 +17,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/bytedance/gopkg/cloud/metainfo"
 	"github.com/cloudwego/kitex/pkg/loadbalance"
 	"io"
 	"log"
@@ -70,11 +71,12 @@ func getOrCreateThriftGenericClient(ri rpcinfo.RPCInfo, genCodeAddr net.Addr) (g
 	options := []client.Option{
 		client.WithResolver(r),
 		client.WithLoadBalancer(loadbalance.NewWeightedRandomBalancer()),
-		client.WithTransportProtocol(transport.TTHeader | transport.TTHeaderStreaming),
+		client.WithTransportProtocol(transport.TTHeaderFramed),
 		client.WithMetaHandler(transmeta.ClientTTHeaderHandler),
 		client.WithMetaHandler(transmeta.ClientHTTP2Handler),
+		client.WithMetaHandler(transmeta.MetainfoClientHandler),
 	}
-	cli, err := genericclient.NewClient(targetDownstreamService, generic.BinaryThriftGenericV2(serviceName), options...)
+	cli, err := genericclient.NewClient(serviceName, generic.BinaryThriftGenericV2(serviceName), options...)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +152,17 @@ func defaultUnknownHandler(genCodeAddr net.Addr) func(ctx context.Context, servi
 		if err != nil {
 			return nil, err
 		}
-		resp, err := cli.GenericCall(ctx, method, request)
+
+		// ✅ 正确方式：获取所有 metainfo
+		metaMap := metainfo.GetAllValues(ctx)
+		newCtx := ctx
+
+		// 重新注入到 newCtx
+		for k, v := range metaMap {
+			newCtx = metainfo.WithValue(newCtx, k, v)
+		}
+
+		resp, err := cli.GenericCall(newCtx, method, request)
 		if err != nil {
 			return nil, err
 		}
