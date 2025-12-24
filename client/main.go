@@ -12,37 +12,47 @@ import (
 	"kit/kitex_gen/kit/common"
 	"kit/kitex_gen/kit/service"
 	"kit/kitex_gen/kit/service/testservice"
+	"time"
 )
 
 func main() {
-	cli, err := testservice.NewClient("TestService",
-		client.WithHostPorts("127.0.0.1:8080"),
-		client.WithClientBasicInfo(&rpcinfo.EndpointBasicInfo{ServiceName: "TestService"}),
-		client.WithTransportProtocol(transport.TTHeaderFramed),
-		client.WithMetaHandler(transmeta.ClientTTHeaderHandler),
-	)
-	if err != nil {
-		panic(err)
+
+	for i := 0; i < 100; i++ {
+		go func() {
+			cli, err := testservice.NewClient("TestService",
+				client.WithHostPorts("127.0.0.1:8080"),
+				client.WithClientBasicInfo(&rpcinfo.EndpointBasicInfo{ServiceName: "TestService"}),
+				client.WithTransportProtocol(transport.TTHeaderFramed),
+				client.WithMetaHandler(transmeta.ClientTTHeaderHandler),
+			)
+			if err != nil {
+				println(err.Error())
+				return
+			}
+			defer func() {
+				if closer, ok := cli.(io.Closer); ok {
+					_ = closer.Close()
+				}
+			}()
+
+			ctx := context.Background()
+
+			// ✅ 关键：设置目标服务名和服务方法（用于路由）
+			ctx = metainfo.WithValue(ctx, "uuid", "123545")
+
+			res, err := cli.TMethod(ctx, &service.TestRequest{Msg: "hello", S: &common.TestStruct{
+				SBoolReq:      true,
+				SListString:   []string{"hello"},
+				SSetI16:       []int16{1},
+				SMapI32String: map[int32]string{1: "hello"},
+			}})
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+
+			}
+			fmt.Println(res.Msg)
+		}()
 	}
-	defer func() {
-		if closer, ok := cli.(io.Closer); ok {
-			_ = closer.Close()
-		}
-	}()
-
-	ctx := context.Background()
-
-	// ✅ 关键：设置目标服务名和服务方法（用于路由）
-	ctx = metainfo.WithValue(ctx, "uuid", "123545")
-
-	res, err := cli.TMethod(ctx, &service.TestRequest{Msg: "hello", S: &common.TestStruct{
-		SBoolReq:      true,
-		SListString:   []string{"hello"},
-		SSetI16:       []int16{1},
-		SMapI32String: map[int32]string{1: "hello"},
-	}})
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(res.Msg)
+	time.Sleep(time.Second * 30)
 }

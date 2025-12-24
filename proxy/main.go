@@ -76,6 +76,7 @@ func main() {
 	// 3. 添加选项
 	opts = append(opts,
 		baseStats,
+		server.WithQPSLimiter(NewMethodRateLimiter(map[string]int{"TestService.tMethod": 10})),
 		server.WithMiddleware(AccessLogMiddleware(GetLogger())),
 		server.WithListener(ln),
 		server.WithMetaHandler(transmeta.ServerTTHeaderHandler),
